@@ -1,13 +1,9 @@
 const express = require("express");
-const dotenv = require("dotenv");
 
 const userRoutes = require("./routes/userRoutes");
 const requestLogger = require("./middlewares/requestLogger");
 const notFound = require("./middlewares/notFound");
 const errorHandler = require("./middlewares/errorHandler");
-
-// Load environment variables from .env into process.env.
-dotenv.config();
 
 const app = express();
 

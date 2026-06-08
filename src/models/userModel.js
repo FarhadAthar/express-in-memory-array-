@@ -1,70 +1,30 @@
-// This file acts like a model layer. For now, data is stored in memory.
-// Restarting the server will reset this array.
-let users = [
+const mongoose = require("mongoose");
+
+// A schema defines the shape and validation rules for user documents.
+const userSchema = new mongoose.Schema(
   {
-    id: 1,
-    name: "Ali Khan",
-    email: "ali@example.com",
-    age: 24,
+    name: {
+      type: String,
+      required: [true, "Name is required"],
+      trim: true,
+    },
+    email: {
+      type: String,
+      required: [true, "Email is required"],
+      unique: true,
+      lowercase: true,
+      trim: true,
+    },
+    age: {
+      type: Number,
+      required: [true, "Age is required"],
+      min: [0, "Age cannot be negative"],
+    },
   },
   {
-    id: 2,
-    name: "Sara Ahmed",
-    email: "sara@example.com",
-    age: 29,
-  },
-];
-
-let nextId = 3;
-
-const findAll = () => users;
-
-const findById = (id) => users.find((user) => user.id === Number(id));
-
-const create = ({ name, email, age }) => {
-  const newUser = {
-    id: nextId,
-    name,
-    email,
-    age,
-  };
-
-  nextId += 1;
-  users.push(newUser);
-
-  return newUser;
-};
-
-const update = (id, { name, email, age }) => {
-  const user = findById(id);
-
-  if (!user) {
-    return null;
+    // Automatically adds createdAt and updatedAt fields.
+    timestamps: true,
   }
+);
 
-  user.name = name;
-  user.email = email;
-  user.age = age;
-
-  return user;
-};
-
-const remove = (id) => {
-  const user = findById(id);
-
-  if (!user) {
-    return null;
-  }
-
-  users = users.filter((currentUser) => currentUser.id !== Number(id));
-
-  return user;
-};
-
-module.exports = {
-  findAll,
-  findById,
-  create,
-  update,
-  remove,
-};
+module.exports = mongoose.model("User", userSchema);

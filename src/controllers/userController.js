@@ -2,46 +2,69 @@ const User = require("../models/userModel");
 const AppError = require("../utils/AppError");
 const { sendSuccess } = require("../utils/apiResponse");
 
-const getUsers = (req, res) => {
-  const users = User.findAll();
+const getUsers = async (req, res, next) => {
+  try {
+    const users = await User.find().sort({ createdAt: -1 });
 
-  return sendSuccess(res, 200, "Users fetched successfully", users);
-};
-
-const getUserById = (req, res, next) => {
-  const user = User.findById(req.params.id);
-
-  if (!user) {
-    return next(new AppError("User not found", 404));
+    return sendSuccess(res, 200, "Users fetched successfully", users);
+  } catch (error) {
+    return next(error);
   }
-
-  return sendSuccess(res, 200, "User fetched successfully", user);
 };
 
-const createUser = (req, res) => {
-  const user = User.create(req.body);
+const getUserById = async (req, res, next) => {
+  try {
+    const user = await User.findById(req.params.id);
 
-  return sendSuccess(res, 201, "User created successfully", user);
-};
+    if (!user) {
+      return next(new AppError("User not found", 404));
+    }
 
-const updateUser = (req, res, next) => {
-  const user = User.update(req.params.id, req.body);
-
-  if (!user) {
-    return next(new AppError("User not found", 404));
+    return sendSuccess(res, 200, "User fetched successfully", user);
+  } catch (error) {
+    return next(error);
   }
-
-  return sendSuccess(res, 200, "User updated successfully", user);
 };
 
-const deleteUser = (req, res, next) => {
-  const deletedUser = User.remove(req.params.id);
+const createUser = async (req, res, next) => {
+  try {
+    const user = await User.create(req.body);
 
-  if (!deletedUser) {
-    return next(new AppError("User not found", 404));
+    return sendSuccess(res, 201, "User created successfully", user);
+  } catch (error) {
+    return next(error);
   }
+};
 
-  return sendSuccess(res, 200, "User deleted successfully", deletedUser);
+const updateUser = async (req, res, next) => {
+  try {
+    const user = await User.findByIdAndUpdate(req.params.id, req.body, {
+      new: true,
+      runValidators: true,
+    });
+
+    if (!user) {
+      return next(new AppError("User not found", 404));
+    }
+
+    return sendSuccess(res, 200, "User updated successfully", user);
+  } catch (error) {
+    return next(error);
+  }
+};
+
+const deleteUser = async (req, res, next) => {
+  try {
+    const deletedUser = await User.findByIdAndDelete(req.params.id);
+
+    if (!deletedUser) {
+      return next(new AppError("User not found", 404));
+    }
+
+    return sendSuccess(res, 200, "User deleted successfully", deletedUser);
+  } catch (error) {
+    return next(error);
+  }
 };
 
 module.exports = {
