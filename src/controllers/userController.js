@@ -1,6 +1,7 @@
 const User = require("../models/userModel");
 const AppError = require("../utils/AppError");
 const { sendSuccess } = require("../utils/apiResponse");
+const jwt = require("jsonwebtoken");
 
 const getUsers = async (req, res, next) => {
   try {
@@ -31,6 +32,43 @@ const createUser = async (req, res, next) => {
     const user = await User.create(req.body);
 
     return sendSuccess(res, 201, "User created successfully", user);
+  } catch (error) {
+    return next(error);
+  }
+};
+
+const loginUser = async (req, res, next) => {
+  try {
+    const { email, password } = req.body;
+
+    if (!email || !password) {
+      return next(new AppError("Email and password are required", 400));
+    }
+
+    const user = await User.findOne({ email }).select("+password");
+
+    if (!user || !(await user.matchPassword(password))) {
+      return next(new AppError("Invalid email or password", 401));
+    }
+
+    const token = jwt.sign({ id: user._id }, process.env.JWT_SECRET, {
+      expiresIn: process.env.JWT_EXPIRES_IN || "1d",
+    });
+
+    return sendSuccess(res, 200, "Login successful", {
+      token,
+      user,
+    });
+  } catch (error) {
+    return next(error);
+  }
+};
+
+const getMe = async (req, res, next) => {
+  try {
+    return sendSuccess(res, 200, "Protected route accessed successfully", {
+      user: req.user,
+    });
   } catch (error) {
     return next(error);
   }
@@ -79,6 +117,8 @@ module.exports = {
   getUsers,
   getUserById,
   createUser,
+  loginUser,
+  getMe,
   updateUser,
   deleteUser,
 };
