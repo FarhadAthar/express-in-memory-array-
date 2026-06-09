@@ -38,14 +38,22 @@ const createUser = async (req, res, next) => {
 
 const updateUser = async (req, res, next) => {
   try {
-    const user = await User.findByIdAndUpdate(req.params.id, req.body, {
-      new: true,
-      runValidators: true,
-    });
+    const user = await User.findById(req.params.id).select("+password");
 
     if (!user) {
       return next(new AppError("User not found", 404));
     }
+
+    // Using save() makes sure the password hashing middleware runs on update.
+    user.name = req.body.name ?? user.name;
+    user.email = req.body.email ?? user.email;
+    user.age = req.body.age ?? user.age;
+
+    if (req.body.password) {
+      user.password = req.body.password;
+    }
+
+    await user.save();
 
     return sendSuccess(res, 200, "User updated successfully", user);
   } catch (error) {

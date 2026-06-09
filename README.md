@@ -142,6 +142,7 @@ Error responses:
 | --- | --- | --- | --- |
 | `name` | String | Yes | User full name |
 | `email` | String | Yes | Must be unique |
+| `password` | String | Yes | Minimum 6 characters, stored as a bcrypt hash |
 | `age` | Number | Yes | Cannot be negative |
 
 ## Postman Testing Examples
@@ -202,6 +203,7 @@ Content-Type: application/json
 {
   "name": "Ahmed Raza",
   "email": "ahmed@example.com",
+  "password": "secret123",
   "age": 31
 }
 ```
@@ -242,6 +244,7 @@ Content-Type: application/json
 {
   "name": "Ahmed Updated",
   "email": "ahmed.updated@example.com",
+  "password": "newsecret123",
   "age": 32
 }
 ```
@@ -266,6 +269,7 @@ Expected status code: `200 OK`
 {
   "name": "",
   "email": "bad@example.com",
+  "password": "123",
   "age": -1
 }
 ```
@@ -285,10 +289,13 @@ Expected status code: `404 Not Found`
 - `server.js` calls `connectDB()`
 - `src/config/db.js` connects to MongoDB with `mongoose.connect(process.env.MONGO_URI)`
 - `src/models/userModel.js` defines the User schema
+- `src/models/userModel.js` hashes passwords with bcrypt before saving
 - `src/controllers/userController.js` uses async Mongoose methods for CRUD
 
 ## Notes
 
 - Keep MongoDB Community Server running before starting the API.
 - The API now stores users permanently in MongoDB.
+- Plain text passwords are never stored; Mongoose hashes them before saving.
+- Passwords are hidden from API responses.
 - Route URLs stayed the same, but user IDs are now MongoDB `_id` values instead of simple numbers.
